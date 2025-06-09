@@ -1,0 +1,21 @@
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: vllm-my-model
+  namespace: hacohen-inference-server
+  annotations:
+    serving.knative.openshift.io/enablePassthrough: "true"
+    sidecar.istio.io/inject: "true"
+    sidecar.istio.io/rewriteAppHTTPProbers: "true"
+spec:
+  deploymentMode: Serverless
+  predictor:
+    minReplicas: 1
+    maxReplicas: 2
+    model:
+      modelFormat:
+        name: vLLM
+      runtime: vllm
+      storage:
+        key: hf-token-secret
+        uri: huggingface://RedHatAI/Llama-3.2-1B-Instruct-FP8

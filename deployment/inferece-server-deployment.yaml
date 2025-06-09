@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rhai-inference-server
+  namespace: hacohen-inference-server
+  labels:
+    app: rhai-inference-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rhai-inference-server
+  template:
+    metadata:
+      labels:
+        app: rhai-inference-server
+    spec:
+      imagePullSecrets:
+      - name: redhat-registry
+      containers:
+      - name: inference-server
+        image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: MODEL_NAME
+          value: "RedHatAI/Llama-3.2-1B-Instruct-FP8"
+        - name: HUGGING_FACE_HUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: hf-token-secret
+              key: HUGGING_FACE_HUB_TOKEN
+        - name: HOST
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8000"
+        - name: VLLM_LOGGING_LEVEL
+          value: DEBUG
+        command: ["python3", "-m", "vllm.entrypoints.openai.api_server"]
+        args: ["--model", "RedHatAI/Llama-3.2-1B-Instruct-FP8", "--hf-token", "HUGGING_FACE_HUB_TOKEN"]
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "4"
+            nvidia.com/gpu: 1
+          limits:
+            memory: "8Gi"
+            cpu: "8"
+            nvidia.com/gpu: 1
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /v1/models
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /v1/models
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: model-pvc
+      tolerations:
+      - key: "g5-gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rhai-inference-service
+  namespace: hacohen-inference-server
+  labels:
+    app: rhai-inference-server
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: rhai-inference-server
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: rhai-inference-route
+  namespace: hacohen-inference-server
+  labels:
+    app: rhai-inference-server
+spec:
+  to:
+    kind: Service
+    name: rhai-inference-service
+  port:
+    targetPort: http
+  tls:
+    termination: edge

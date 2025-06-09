@@ -1,0 +1,30 @@
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: vllm
+  namespace: hacohen-inference-server
+spec:
+  supportedModelFormats:
+    - name: vLLM
+      version: "1"
+      autoSelect: true
+  containers:
+    - name: kserve-container
+      image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0
+      command: ["python3"]
+      args: ["-m", "rhaiis.runtime.vllm.api"]
+      ports:
+        - containerPort: 8080
+          name: h2c
+      env:
+        - name: MODEL_MOUNT_PATH
+          value: /mnt/models
+        - name: TRANSFORMERS_CACHE
+          value: /mnt/models/transformers_cache
+      volumeMounts:
+        - mountPath: /mnt/models
+          name: kserve-models
+  volumes:
+    - name: kserve-models
+      emptyDir: {}
+  multiModel: false
