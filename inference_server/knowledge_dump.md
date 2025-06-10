@@ -38,27 +38,29 @@ Following those steps:
     }' http://<your_server_ip>:8000/v1/completions | jq
 7. git clone https://github.com/vllm-project/vllm.git
 8. python vllm/benchmarks/benchmark_serving.py --backend vllm --model RedHatAI/Llama-3.2-1B-Instruct-FP8 --num-prompts 100 --dataset-name random  --random-input 1024 --random-output 512 --port 8000
-And my output was:
-============ Serving Benchmark Result ============
-Successful requests:                     100       
-Benchmark duration (s):                  17.32     
-Total input tokens:                      102300    
-Total generated tokens:                  38827     
-Request throughput (req/s):              5.77      
-Output token throughput (tok/s):         2241.42   
-Total Token throughput (tok/s):          8147.03   
----------------Time to First Token----------------
-Mean TTFT (ms):                          5399.10   
-Median TTFT (ms):                        6003.49   
-P99 TTFT (ms):                           6013.25   
------Time per Output Token (excl. 1st token)------
-Mean TPOT (ms):                          36.13     
-Median TPOT (ms):                        22.10     
-P99 TPOT (ms):                           324.17    
----------------Inter-token Latency----------------
-Mean ITL (ms):                           23.88     
-Median ITL (ms):                         22.00     
-P99 ITL (ms):                            26.00     
-==================================================
+
+### Output:
+
+    ============ Serving Benchmark Result ============
+    Successful requests:                     100       
+    Benchmark duration (s):                  17.32     
+    Total input tokens:                      102300    
+    Total generated tokens:                  38827     
+    Request throughput (req/s):              5.77      
+    Output token throughput (tok/s):         2241.42   
+    Total Token throughput (tok/s):          8147.03   
+    ---------------Time to First Token----------------
+    Mean TTFT (ms):                          5399.10   
+    Median TTFT (ms):                        6003.49   
+    P99 TTFT (ms):                           6013.25   
+    -----Time per Output Token (excl. 1st token)------
+    Mean TPOT (ms):                          36.13     
+    Median TPOT (ms):                        22.10     
+    P99 TPOT (ms):                           324.17    
+    ---------------Inter-token Latency----------------
+    Mean ITL (ms):                           23.88     
+    Median ITL (ms):                         22.00     
+    P99 ITL (ms):                            26.00     
+    ==================================================
 
 
