@@ -36,6 +36,7 @@ Following those steps:
         "prompt": "What is the capital of France?",
         "max_tokens": 50
     }' http://<your_server_ip>:8000/v1/completions | jq
+    I this case the server ip is `localhost`
 7. git clone https://github.com/vllm-project/vllm.git
 8. python vllm/benchmarks/benchmark_serving.py --backend vllm --model RedHatAI/Llama-3.2-1B-Instruct-FP8 --num-prompts 100 --dataset-name random  --random-input 1024 --random-output 512 --port 8000
 
