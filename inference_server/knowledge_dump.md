@@ -3,7 +3,7 @@
 Based on the instuctions [here](https://docs.redhat.com/en/documentation/red_hat_ai_inference_server/3.0/html-single/getting_started/index).
 I went to the [catalog](https://catalog.demo.redhat.com/) and started a RHEL AI machine with L4 Nvidia GPU.
 
-![VM type](inference_server/image.png "A screenshot of the VM that was activated")
+![VM type](image.png "A screenshot of the VM that was activated")
 
 
 Following those steps:
