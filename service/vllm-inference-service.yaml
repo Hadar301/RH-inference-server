@@ -1,0 +1,41 @@
+# vllm-inference-service.yaml
+apiVersion: serving.kserve.io/v1beta1
+kind: InferenceService
+metadata:
+  name: llama-3-2-1b-instruct # A unique name for your inference service
+  namespace: hacohen-inference-server # IMPORTANT: Replace with your OpenShift project/namespace
+spec:
+  predictor:
+    model:
+      modelFormat:
+        name: vllm
+        version: "1"
+      # Specify the custom ServingRuntime
+      runtime: vllm-cuda-runtime # This must match the name of the ServingRuntime defined above
+      # Model storage configuration
+      storageUri: "hf://RedHatAI/Llama-3.2-1B-Instruct-FP8" # The HuggingFace model URI
+      # Secret for HuggingFace authentication
+      # Ensure this secret is created in your namespace and has the key `hf_token`
+      storage:
+        parameters:
+          secretKeyRef:
+            name: hf-token-secret # Your Hugging Face secret name
+            key: HUGGING_FACE_HUB_TOKEN # The key within the secret that holds your HF token
+      # If you need to specify GPU resources directly on the InferenceService
+      # (e.g., overriding runtime defaults or if runtime doesn't specify),
+      # you would add it here under `resources` similar to the ServingRuntime.
+      # However, since the ServingRuntime handles it, it might not be strictly necessary here,
+      # but it's good practice to ensure the resource request is clear.
+      resources:
+        limits:
+          cpu: "8"
+          memory: "8Gi"
+          nvidia.com/gpu: "1"
+        requests:
+          cpu: "4"
+          memory: "4Gi"
+          nvidia.com/gpu: "1"
+    # Optional: Configure autoscaling behavior
+    scaleTarget: 1 # Start with at least 1 replica
+    minReplicas: 1 # Ensure at least one replica is always running
+    maxReplicas: 3 # Allow scaling up to 3 replicas based on load

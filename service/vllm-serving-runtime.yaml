@@ -1,0 +1,37 @@
+# vllm-serving-runtime.yaml
+apiVersion: serving.kserve.io/v1alpha1
+kind: ServingRuntime
+metadata:
+  name: vllm-cuda-runtime # A unique name for your custom runtime
+  namespace: hacohen-inference-server # IMPORTANT: Replace with your OpenShift project/namespace
+spec:
+  supportedModelFormats:
+    - name: vllm
+      version: "1" # This version is a convention for vLLM
+  protocolVersions:
+    - v2 # KServe V2 prediction protocol
+  containers:
+    - name: kserve-container # Name of the container within the runtime
+      image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0 # Your specified vLLM CUDA image
+      resources:
+        limits:
+          cpu: "8" # Example CPU limit, adjust as needed
+          memory: "8Gi" # Example memory limit, adjust based on model size and vLLM requirements
+          nvidia.com/gpu: "1" # Request at least 1 GPU
+        requests:
+          cpu: "4" # Example CPU request
+          memory: "4Gi" # Example memory request
+          nvidia.com/gpu: "1" # Request at least 1 GPU
+      imagePullSecrets:
+        - name: redhat-registry # Secret for pulling the Red Hat image
+  tolerations:
+      - key: "g5-gpu"
+        operator: "Exists"
+        effect: "NoSchedule"
+      # Environment variables for vLLM can be added here if needed,
+      # for example, to configure specific vLLM settings or model paths
+      # env:
+      #   - name: VLLM_ARGS
+      #     value: "--tensor-parallel-size 1"
+  # You can also add built-in adapters or configuration here if needed,
+  # but for a simple vLLM model, direct container configuration is often sufficient.
