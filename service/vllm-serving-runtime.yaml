@@ -1,37 +1,65 @@
-# vllm-serving-runtime.yaml
+# vllm-cuda-runtime.yaml (Corrected - HTTP Probes)
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
-  name: vllm-cuda-runtime # A unique name for your custom runtime
-  namespace: hacohen-inference-server # IMPORTANT: Replace with your OpenShift project/namespace
+  name: vllm-cuda-runtime
+  namespace: hacohen-inference-server # Your OpenShift project/namespace
 spec:
   supportedModelFormats:
     - name: vllm
-      version: "1" # This version is a convention for vLLM
+      version: "1"
   protocolVersions:
-    - v2 # KServe V2 prediction protocol
+    - v2
   containers:
-    - name: kserve-container # Name of the container within the runtime
-      image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0 # Your specified vLLM CUDA image
+    - name: kserve-container
+      image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0
       resources:
         limits:
-          cpu: "8" # Example CPU limit, adjust as needed
-          memory: "8Gi" # Example memory limit, adjust based on model size and vLLM requirements
-          nvidia.com/gpu: "1" # Request at least 1 GPU
+          cpu: "8"
+          memory: "8Gi"
+          nvidia.com/gpu: "1"
         requests:
-          cpu: "4" # Example CPU request
-          memory: "4Gi" # Example memory request
-          nvidia.com/gpu: "1" # Request at least 1 GPU
+          cpu: "4"
+          memory: "4Gi"
+          nvidia.com/gpu: "1"
       imagePullSecrets:
-        - name: redhat-registry # Secret for pulling the Red Hat image
+        - name: redhat-registry
+      env:
+        - name: HUGGING_FACE_HUB_TOKEN # Environment variable for vLLM
+          valueFrom:
+            secretKeyRef:
+              name: hf-token-secret
+              key: HUGGING_FACE_HUB_TOKEN # Matches the key in your secret
+        - name: MODEL_ID # Tells vLLM which model to load from Hugging Face
+          value: "RedHatAI/Llama-3.2-1B-Instruct-FP8"
+      command: ["python", "-m", "vllm.entrypoints.api_server"]
+      args:
+        - "--host"
+        - "0.0.0.0"
+        - "--port"
+        - "8000"
+        - "--model"
+        - "RedHatAI/Llama-3.2-1B-Instruct-FP8"
+      # --- START: Updated Probes to use HTTPGet ---
+      startupProbe:
+        httpGet:
+          path: /health # Use the vLLM /health endpoint
+          port: 8000
+        initialDelaySeconds: 5
+        periodSeconds: 10
+        failureThreshold: 60 # Allow up to 10 minutes (60 * 10s) for startup
+      readinessProbe:
+        httpGet:
+          path: /health # Use the vLLM /health endpoint
+          port: 8000
+        initialDelaySeconds: 60 # Give it more time after startupProbe for initial model loading
+        periodSeconds: 10
+        failureThreshold: 3
+      # --- END: Updated Probes to use HTTPGet ---
   tolerations:
       - key: "g5-gpu"
         operator: "Exists"
         effect: "NoSchedule"
-      # Environment variables for vLLM can be added here if needed,
-      # for example, to configure specific vLLM settings or model paths
-      # env:
-      #   - name: VLLM_ARGS
-      #     value: "--tensor-parallel-size 1"
-  # You can also add built-in adapters or configuration here if needed,
-  # but for a simple vLLM model, direct container configuration is often sufficient.
+      - key: "node-role.kubernetes.io/master"
+        operator: "Exists"
+        effect: "NoSchedule"
