@@ -20,7 +20,7 @@ Based on the instuctions [here](https://docs.redhat.com/en/documentation/red_hat
     python benchmarks/benchmark_serving.py --backend vllm \
     --model RedHatAI/Llama-3.2-1B-Instruct-FP8 --num-prompts 100 \
     --dataset-name random  --random-input 1024 \
-    --random-output 512 --port 8000
+    --random-output 512 --port 8000 --base-url <SERVICE_URL>
 
 
     And the output should look like this:
