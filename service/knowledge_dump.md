@@ -5,10 +5,10 @@ Based on the instuctions [here](https://docs.redhat.com/en/documentation/red_hat
 ### 1. Log in to your cluster oc login ...
 
 ### 2. apply the infernce service runtime:
-    `oc apply -f vllm-serving-runtime.yaml` 
+    oc apply -f vllm-serving-runtime.yaml
 
 ### 3. apply the infernce service:
-    `oc apply -f vllm-inference-service.yaml` 
+    oc apply -f vllm-inference-service.yaml
 
 
 ### 6. Testing:
