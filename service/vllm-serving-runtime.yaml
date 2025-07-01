@@ -9,9 +9,9 @@ spec:
     - name: vllm
       version: "1"
   protocolVersions:
-    - v2
+    - v1
   builtInAdapter:
-    server: grpc-v2
+    server: http
     runtimeVersion: "1"
     ports:
       http: 8000
@@ -41,13 +41,15 @@ spec:
               key: HUGGING_FACE_HUB_TOKEN # Matches the key in your secret
         - name: MODEL_ID # Tells vLLM which model to load from Hugging Face
           value: "RedHatAI/Llama-3.2-1B-Instruct-FP8"
-      command: ["python", "-m", "vllm.entrypoints.api_server"]
+      command: ["python", "-m", "vllm.entrypoints.openai.api_server"]
       args:
         - "--host"
         - "0.0.0.0"
         - "--port"
         - "8000"
         - "--model"
+        - "RedHatAI/Llama-3.2-1B-Instruct-FP8"
+        - "--served-model-name"
         - "RedHatAI/Llama-3.2-1B-Instruct-FP8"
       # --- START: Updated Probes to use HTTPGet ---
       startupProbe:
