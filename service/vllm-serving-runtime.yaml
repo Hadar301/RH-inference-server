@@ -1,4 +1,4 @@
-# vllm-cuda-runtime.yaml (Corrected - HTTP Probes)
+# vllm-serving-runtime.yaml
 apiVersion: serving.kserve.io/v1alpha1
 kind: ServingRuntime
 metadata:
@@ -10,6 +10,11 @@ spec:
       version: "1"
   protocolVersions:
     - v2
+  builtInAdapter:
+    server: grpc-v2
+    runtimeVersion: "1"
+    ports:
+      http: 8000
   containers:
     - name: kserve-container
       image: registry.redhat.io/rhaiis/vllm-cuda-rhel9:3.0.0
@@ -22,6 +27,10 @@ spec:
           cpu: "4"
           memory: "4Gi"
           nvidia.com/gpu: "1"
+      ports: 
+        - containerPort: 8000
+          name: http1
+          protocol: TCP
       imagePullSecrets:
         - name: redhat-registry
       env:
@@ -52,12 +61,12 @@ spec:
         httpGet:
           path: /health # Use the vLLM /health endpoint
           port: 8000
-        initialDelaySeconds: 60 # Give it more time after startupProbe for initial model loading
+        initialDelaySeconds: 180 # Give it more time after startupProbe for initial model loading
         periodSeconds: 10
         failureThreshold: 3
       # --- END: Updated Probes to use HTTPGet ---
   tolerations:
-      - key: "g5-gpu"
+      - key: "p4-gpu" # dev02 is "g5-gpu" dev04 is "p4-gpu"
         operator: "Exists"
         effect: "NoSchedule"
       - key: "node-role.kubernetes.io/master"

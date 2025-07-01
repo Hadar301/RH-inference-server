@@ -1,4 +1,4 @@
-# vllm-inference-service.yaml (Corrected - storageUri removed)
+# vllm-inference-service.yaml
 apiVersion: serving.kserve.io/v1beta1
 kind: InferenceService
 metadata:
